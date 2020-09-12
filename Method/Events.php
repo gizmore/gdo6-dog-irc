@@ -5,6 +5,10 @@ use GDO\Dog\DOG_Command;
 use GDO\Dog\DOG_User;
 use GDO\Dog\DOG_Room;
 use GDO\Dog\DOG_Server;
+use GDO\DogIRC\IRCLib;
+use GDO\Dog\Dog;
+use GDO\Dog\DOG_Message;
+use GDO\DogIRC\Connector\IRC;
 
 final class Events extends DOG_Command
 {
@@ -24,21 +28,33 @@ final class Events extends DOG_Command
     
     public function irc_NOTICE(DOG_Server $server, DOG_User $user, $to, $text)
     {
-        $room = DOG_Room::getByName($server, $to);
     }
     
     public function irc_PRIVMSG(DOG_Server $server, DOG_User $user, $to, $text)
     {
-        $room = DOG_Room::getByName($server, $to);
+        // CTCP check
+        if ($text[0] === IRCLib::CTCP)
+        {
+            Dog::instance()->event('irc_CTCP', $server, $user, trim($text, IRCLib::CTCP));
+            return;
+        }
         
+        // Proxy to main event
+        $room = DOG_Room::getByName($server, $to);
+        $message = new DOG_Message();
+        $message->room($room)->text($text)->server($server)->user($user);
+        Dog::instance()->event('dog_message', $message);
     }
     
-    public function irc_001(DOG_Server $server, DOG_User $user, $to, $text)
+    public function irc_CTCP(DOG_Server $server, DOG_User $user, $text)
     {
-        if ($password = $server->getPassword())
+        /** @var IRC $connector  **/
+        $connector = $server->getConnector();
+        if ($text === 'VERSION')
         {
-            $this->identify($username, $password);
+            $connector->sendCTCP($user->getName(), "GDO6 - DOG BOT v6.11 - IRC CONNECTOR v6.11");
         }
     }
+    
     
 }

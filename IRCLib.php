@@ -7,9 +7,7 @@ namespace GDO\DogIRC;
  */
 final class IRCLib
 {
+    const CTCP = "\x01";
     const BOLD = "\x02";
     
-    public static function parseMessage($raw)
-    {
-    }
 }

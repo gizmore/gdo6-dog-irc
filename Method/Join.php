@@ -16,7 +16,7 @@ final class Join extends DOG_IRCCommand
 {
     private $passwords = array();
     
-    public function getTrigger() { return 'join_channel'; }
+    public function getTrigger() { return 'join channel'; }
     public function getPermission() { return 'halfop'; }
     
     public function gdoParameters()

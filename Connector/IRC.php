@@ -8,6 +8,7 @@ use GDO\Dog\Dog;
 use GDO\Dog\DOG_User;
 use GDO\Util\Strings;
 use GDO\Util\Random;
+use GDO\DogIRC\IRCLib;
 
 class IRC extends DOG_Connector
 {
@@ -189,9 +190,31 @@ class IRC extends DOG_Connector
 	    return true;
 	}
 	
+	public function sendCTCP($to, $text)
+	{
+	    $ctcp = IRCLib::CTCP;
+	    return $this->sendNOTICE($to, "{$ctcp}{$text}{$ctcp}");
+	}
+	
+	public function sendAction($to, $text)
+	{
+	    $ctcp = IRCLib::CTCP;
+	    return $this->sendPRIVMSG($to, "{$ctcp}ACTION {$text}{$ctcp}");
+	}
+	
+	public function sendNOTICE($to, $text)
+	{
+	    return $this->sendSplitted("NOTICE {$to} :{$text}");
+	}
+	
+	public function sendPRIVMSG($to, $text)
+	{
+		return $this->sendSplitted("PRIVMSG {$to} :{$text}");
+	}
+	
 	public function sendTo($to, $text)
 	{
-		return $this->send("PRIVMSG {$to} :{$text}");
+	    return $this->sendPRIVMSG($to, $text);
 	}
 	
 	public function send($text)
@@ -204,5 +227,37 @@ class IRC extends DOG_Connector
 	    }
 	    return true;
 	}
+	
+	/**
+	 * Send a message split into multiple.
+	 * @param string $message The real message.
+	 * @param int $split_len The length for each chunk.
+	 */
+	public function sendSplitted($message, $split_len=420)
+	{
+	    $len = strlen($message);
+	    
+	    if ($len <= $split_len)
+	    {
+	        return $this->send($message);
+	    }
+	    
+	    if (Strings::startsWith($message, "NOTICE ") || Strings::startsWith($message, "PRIVMSG"))
+	    {
+	        $prefix = Strings::substrTo($message, ':') . ':';
+	        $message = Strings::substrFrom($message, ':');
+	    }
+	    
+	    foreach (Strings::chunkSplit($message, $split_len - strlen($prefix)) as $chunk)
+	    {
+	        if (!$this->send($prefix.$chunk))
+	        {
+	            return false;
+	        }
+	    }
+
+	    return true;
+	}
+	
 	
 }
