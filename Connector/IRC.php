@@ -3,6 +3,7 @@ namespace GDO\DogIRC\Connector;
 
 use GDO\Dog\DOG_Connector;
 use GDO\Core\Logger;
+use GDO\Dog\DOG_Room;
 use GDO\Dog\DOG_Server;
 use GDO\Dog\Dog;
 use GDO\Dog\DOG_User;
@@ -65,6 +66,7 @@ class IRC extends DOG_Connector
     	$this->socket = $socket;
     	$this->connected(true);
     	$this->nickname = null;
+    	$this->registered = false;
     	return true;
     }
     
@@ -74,11 +76,15 @@ class IRC extends DOG_Connector
         fclose($this->socket);
         $this->socket = null;
         $this->connected(false);
-        $this->registered = false;
+        $this->server->disconnect();
     }
     
     public function readMessage()
 	{
+        if (!$this->socket)
+        {
+            return false;
+        }
 		if (feof($this->socket))
 		{
 			$this->disconnect('I got feof!');
@@ -133,6 +139,7 @@ class IRC extends DOG_Connector
 	    if ($from)
 	    {
 	        $user = DOG_User::getOrCreateUser($this->server, $from);
+	        $this->server->addUser($user);
 	        array_unshift($args, $user);
 	    }
 	    
@@ -181,7 +188,7 @@ class IRC extends DOG_Connector
 	    {
 	        if ($nick === $this->server->getUsername())
 	        {
-    	        if (!$this->sendTo('NickServ', 'IDENTIFY '.$password))
+    	        if (!$this->sendPRIVMSG('NickServ', 'IDENTIFY '.$password))
     	        {
     	            return false;
     	        }
@@ -212,20 +219,30 @@ class IRC extends DOG_Connector
 		return $this->sendSplitted("PRIVMSG {$to} :{$text}");
 	}
 	
-	public function sendTo($to, $text)
+	public function sendToRoom(DOG_Room $room, $text)
 	{
-	    return $this->sendPRIVMSG($to, $text);
+	    return $this->sendPRIVMSG($room->getName(), $text);
+	}
+	
+	public function sendToUser(DOG_User $user, $text)
+	{
+	    return $this->sendPRIVMSG($user->getName(), $text);
 	}
 	
 	public function send($text)
 	{
-	    Logger::logCron(sprintf('%s >> %s', $this->server->displayName(), $text));
-	    if (!fwrite($this->socket, "$text\r\n"))
+	    if ($this->socket)
 	    {
-	        $this->disconnect("SEND failed");
-	        return false;
+    	    Logger::logCron(sprintf('%s >> %s', $this->server->displayName(), $text));
+    	    if (!fwrite($this->socket, "$text\r\n"))
+    	    {
+    	        $this->socket = null;
+    	        $this->disconnect("SEND failed");
+    	        return false;
+    	    }
+    	    return true;
 	    }
-	    return true;
+	    return false;
 	}
 	
 	/**
@@ -258,6 +275,5 @@ class IRC extends DOG_Connector
 
 	    return true;
 	}
-	
 	
 }

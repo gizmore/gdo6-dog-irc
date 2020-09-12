@@ -7,6 +7,10 @@ use GDO\DB\GDT_String;
 use GDO\Core\GDT_Secret;
 use GDO\Dog\DOG_Room;
 use GDO\Dog\DOG_Server;
+use GDO\Dog\Dog;
+use GDO\Dog\DOG_User;
+use GDO\DogIRC\Connector\IRC;
+use GDO\DB\GDT_Checkbox;
 
 /**
  * Make the bot join a channel.
@@ -14,10 +18,19 @@ use GDO\Dog\DOG_Server;
  */
 final class Join extends DOG_IRCCommand
 {
+    public $group = 'IRC';
+    public $trigger = 'join_channel';
+    
     private $passwords = array();
     
-    public function getTrigger() { return 'join channel'; }
-    public function getPermission() { return 'halfop'; }
+    public function getPermission() { return Dog::HALFOP; }
+    
+    public function getConfigRoom()
+    {
+        return array(
+            GDT_Checkbox::make('autojoin')->notNull()->initial('1'),
+        );
+    }
     
     public function gdoParameters()
     {
@@ -27,25 +40,54 @@ final class Join extends DOG_IRCCommand
         );
     }
     
-    public function dogExecute(DOG_Message $message, $channelName, $password)
+    public function dogExecute(DOG_Message $message, $roomName, $password)
     {
         /** @var \GDO\DogIRC\Connector\IRC $connector **/
         $connector = $message->server->getConnector();
-        $command = "JOIN $channelName";
+        $command = "JOIN $roomName";
         $command .= $password ? " $password" : '';
-        $message->rply('msg_join_irc_channel', [$channelName]);
+        $message->rply('msg_join_irc_channel', [$roomName]);
         $connector->send($command);
-        $this->passwords[$channelName] = $password;
+        $this->passwords[$roomName] = $password;
+        
+        if ($room = DOG_Room::getByName($message->server, $roomName))
+        {
+            $this->setConfigValueRoom($room, 'autojoin', true);
+        }
     }
     
-    public function irc_JOIN(DOG_Server $server, $channelName, $username)
+    public function irc_JOIN(DOG_Server $server, DOG_User $user, $roomName)
     {
-        if (isset($this->passwords[$channelName]))
+        if (isset($this->passwords[$roomName]))
         {
-            $password = $this->passwords[$channelName];
-            $room = DOG_Room::getOrCreate($server, $channelName);
+            $password = $this->passwords[$roomName];
+            $room = DOG_Room::getOrCreate($server, $roomName);
             $room->saveVar('room_password', $password);
-            unset($this->passwords[$channelName]);
+            unset($this->passwords[$roomName]);
+        }
+    }
+    
+    public function irc_001(DOG_Server $server, DOG_User $user, $text)
+    {
+        /**
+         * @var DOG_Room[] $rooms
+         */
+        $rooms = DOG_Room::table()->select()->where("room_server={$server->getID()}")->exec()->fetchAllObjects();
+        
+        /**
+         * @var IRC $connector 
+         */
+        $connector = $server->getConnector();
+        
+        foreach ($rooms as $room)
+        {
+            if ($this->getConfigValueRoom($room, 'autojoin'))
+            {
+                $password = $room->getPassword();
+                $command = "JOIN {$room->getName()}";
+                $command .= $password ? " {$password}" : '';
+                $connector->send($command);
+            }
         }
     }
     
