@@ -15,7 +15,6 @@ use GDO\Dog\DOG_User;
  */
 final class Part extends DOG_IRCCommand
 {
-    public $group = 'IRC';
     public $trigger = 'part_channel';
     
     public function getPermission() { return Dog::OPERATOR; }

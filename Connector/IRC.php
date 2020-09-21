@@ -112,7 +112,10 @@ class IRC extends DOG_Connector
 		if ($raw = fgets($this->socket, 2047))
 		{
 		    $raw = trim($raw);
-    		Logger::logCron(sprintf('%s << %s', $this->server->displayName(), $raw));
+		    if (defined('GWF_CONSOLE_VERBOSE'))
+		    {
+		        Logger::logCron(sprintf('%s << %s', $this->server->displayName(), $raw));
+		    }
     		return $this->parseMessage($raw);
 		}
 		return false;
@@ -257,7 +260,10 @@ class IRC extends DOG_Connector
 	{
 	    if ($this->socket)
 	    {
-    	    Logger::logCron(sprintf('%s >> %s', $this->server->displayName(), $text));
+	        if (defined('GWF_CONSOLE_VERBOSE'))
+	        {
+	            Logger::logCron(sprintf('%s >> %s', $this->server->displayName(), $text));
+	        }
     	    if (!fwrite($this->socket, "$text\r\n"))
     	    {
     	        $this->socket = null;

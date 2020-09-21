@@ -2,10 +2,23 @@
 namespace GDO\DogIRC;
 
 use GDO\Dog\DOG_Command;
+use GDO\Dog\DOG_Message;
+use GDO\DogIRC\Connector\IRC;
 
-class DOG_IRCCommand extends DOG_Command
+/**
+ * IRC Commands have only one allowed connector and a predefined group.
+ * @author gizmore
+ */
+abstract class DOG_IRCCommand extends DOG_Command
 {
+    public $group = 'IRC';
+    
     public function getConnectors() { return ['IRC']; }
     
-    public function getGroup() { return 'IRC'; }
+    /**
+     * @param DOG_Message $message
+     * @return IRC
+     */
+    public function getConnector(DOG_Message $message) { return $message->server->getConnector(); }
+    
 }

@@ -140,5 +140,17 @@ final class Events extends DOG_Command
             }
         }
     }
-    
+
+    /**
+     * Nick in use.
+     * @param DOG_Server $server
+     * @param DOG_User $user
+     * @param string $star
+     * @param string $me
+     * @param string $text
+     */
+    public function irc_433(DOG_Server $server, DOG_User $user, $star, $me, $text)
+    {
+        
+    }
 }
