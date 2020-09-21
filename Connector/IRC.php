@@ -8,6 +8,7 @@ use GDO\Dog\DOG_Room;
 use GDO\Dog\DOG_Server;
 use GDO\Dog\Dog;
 use GDO\Dog\DOG_User;
+use GDO\User\GDO_User;
 use GDO\Util\Strings;
 use GDO\Util\Random;
 use GDO\DogIRC\IRCLib;
@@ -22,11 +23,12 @@ use GDO\Dog\Obfuscate;
  */
 class IRC extends DOG_Connector
 {
+	public $nickname;
+
 	private $timestamp;
 	private $socket;
 	private $context;
 	private $registered = false;
-	public $nickname;
 	
 	public function setupServer(DOG_Server $server)
 	{
@@ -46,7 +48,15 @@ class IRC extends DOG_Connector
 	
     public function connect()
     {
-    	if (false === ($this->context = @stream_context_create()))
+        $options = [
+            'ssl' => [
+                'allow_self_signed' => true,
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            ],
+        ];
+        
+    	if (false === ($this->context = @stream_context_create($options)))
     	{
     		Logger::logError('IRC Connector cannot create stram context.');
     		return false;
@@ -75,6 +85,12 @@ class IRC extends DOG_Connector
     		}
     	}
     	
+//     	if (!@stream_set_timeout($socket, $this->server->getConnectTimeout()))
+//     	{
+//     	    Logger::logError('Dog_IRC::connect() ERROR: stream_set_timeout()');
+//     	    return false;
+//     	}
+    	
     	if (!@stream_set_blocking($socket, 0))
     	{
     		Logger::logError('Dog_IRC::connect() ERROR: stream_set_blocking(): $blocked=0');
@@ -86,6 +102,7 @@ class IRC extends DOG_Connector
     	$this->connected(true);
     	$this->nickname = null;
     	$this->registered = false;
+    	
     	return true;
     }
     
@@ -94,6 +111,7 @@ class IRC extends DOG_Connector
         $this->send("QUIT :{$reason}");
         fclose($this->socket);
         $this->socket = null;
+        $this->context = null;
         $this->connected(false);
         $this->server->disconnect();
     }
@@ -161,6 +179,7 @@ class IRC extends DOG_Connector
 	    if ($from)
 	    {
 	        $user = DOG_User::getOrCreateUser($this->server, $from);
+	        GDO_User::$CURRENT = $user->getGDOUser();
 	        $this->server->addUser($user);
 	        array_unshift($args, $user);
 	    }

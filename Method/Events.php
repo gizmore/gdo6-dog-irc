@@ -102,6 +102,7 @@ final class Events extends DOG_Command
     {
         $this->getConnector($server)->nickname = $me;
         $user->saveVar('doguser_service', '1');
+        Dog::instance()->event('dog_server_authenticated', $server);
     }
     
     public function irc_002(DOG_Server $server, DOG_User $user, $me, $version)
