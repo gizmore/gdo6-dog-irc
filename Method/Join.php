@@ -46,14 +46,20 @@ final class Join extends DOG_IRCCommand
         $connector = $message->server->getConnector();
         $command = "JOIN $roomName";
         $command .= $password ? " $password" : '';
-        $message->rply('msg_join_irc_channel', [$roomName]);
-        $connector->send($command);
-        $this->passwords[$roomName] = $password;
         
         if ($room = DOG_Room::getByName($message->server, $roomName))
         {
             $this->setConfigValueRoom($room, 'autojoin', true);
         }
+        
+        if ($message->server->hasRoom($room))
+        {
+            return $message->rply('err_dog_already_in_room', [$roomName]);
+        }
+
+        $message->rply('msg_join_irc_channel', [$roomName]);
+        $this->passwords[$roomName] = $password;
+        $connector->send($command);
     }
     
     public function irc_JOIN(DOG_Server $server, DOG_User $user, $roomName)

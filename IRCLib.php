@@ -36,5 +36,37 @@ final class IRCLib
         $chars = implode('', array_keys(self::mapCharPermission()));
         return ltrim($userName, $chars);
     }
+    
+    /**
+     * Split a message into $len chunks, but only break at spaces.
+     * @param string $text
+     * @param number $len
+     * @return string[]
+     */
+    public static function splitMessage($text, $len=420)
+    {
+        $chunks = [];
+        $end1 = $end2 = 0;
+        while ($text)
+        {
+            if (strlen($text) <= $len)
+            {
+                $chunks[] = $text;
+                return $chunks;
+            }
+            $end2 = strpos($text, " ", $end1+1);
+            if ($end2 > $len)
+            {
+                if ($end1 === 0) # NO SPACE!
+                {
+                    $end1 = $len;
+                }
+                $chunks[] = substr($text, 0, $end1);
+                $text = substr($text, $end1);
+                $end1 = $end2 = 0;
+            }
+            $end1 = $end2;
+        }
+    }
 
 }

@@ -2,6 +2,7 @@
 namespace GDO\DogIRC\Connector;
 
 use GDO\Dog\DOG_Connector;
+use GDO\Core\Application;
 use GDO\Core\Logger;
 use GDO\Dog\DOG_Room;
 use GDO\Dog\DOG_Server;
@@ -10,19 +11,37 @@ use GDO\Dog\DOG_User;
 use GDO\Util\Strings;
 use GDO\Util\Random;
 use GDO\DogIRC\IRCLib;
+use GDO\DogIRC\DOG_IRCServerSettings;
+use GDO\Dog\Obfuscate;
 
+/**
+ * IRC Connector
+ * @author gizmore
+ * @version 6.10
+ * @since 3.00
+ */
 class IRC extends DOG_Connector
 {
 	private $timestamp;
 	private $socket;
 	private $context;
 	private $registered = false;
-	private $nickname;
+	public $nickname;
 	
 	public function setupServer(DOG_Server $server)
 	{
 	    $tls = strpos($server->getURL()->raw, 'ircs://') === 0 ? '1' : '0';
 	    $server->setVar('serv_tls', $tls);
+	}
+	
+	public function obfuscate($string)
+	{
+	    return Obfuscate::obfuscate($string);
+	}
+	
+	public function getSettings()
+	{
+	    return DOG_IRCServerSettings::getOrCreate($this->server);
 	}
 	
     public function connect()
@@ -47,7 +66,7 @@ class IRC extends DOG_Connector
     		Logger::logError(sprintf('Dog_IRC::connect() $errno=%d; $errstr=%s', $errno, $errstr));
     	}
     	
-    	if ($this->server->isTLS())
+    	if ($this->server->getURL()->getScheme() === 'ircs')
     	{
     		if (!@stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT))
     		{
@@ -62,7 +81,7 @@ class IRC extends DOG_Connector
     		return false;
     	}
     	
-    	$this->timestamp = time();
+    	$this->timestamp = Application::$TIME;
     	$this->socket = $socket;
     	$this->connected(true);
     	$this->nickname = null;
@@ -229,6 +248,11 @@ class IRC extends DOG_Connector
 	    return $this->sendPRIVMSG($user->getName(), $text);
 	}
 	
+	public function sendNoticeToUser(DOG_User $user, $text)
+	{
+	    return $this->sendNOTICE($user->getName(), $text);
+	}
+	
 	public function send($text)
 	{
 	    if ($this->socket)
@@ -265,9 +289,9 @@ class IRC extends DOG_Connector
 	        $message = Strings::substrFrom($message, ':');
 	    }
 	    
-	    foreach (Strings::chunkSplit($message, $split_len - strlen($prefix)) as $chunk)
+	    foreach (IRCLib::splitMessage($message, $split_len) as $chunk)
 	    {
-	        if (!$this->send($prefix.$chunk))
+	        if (!$this->send($prefix . $chunk))
 	        {
 	            return false;
 	        }

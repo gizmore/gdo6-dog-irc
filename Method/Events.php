@@ -10,10 +10,30 @@ use GDO\Dog\Dog;
 use GDO\Dog\DOG_Message;
 use GDO\DogIRC\Connector\IRC;
 use GDO\User\GDO_UserPermission;
+use GDO\DogIRC\DOG_IRCServerSettings;
+use GDO\Util\Common;
 
 final class Events extends DOG_Command
 {
     public $priority = 1;
+    
+    /**
+     * @param DOG_Server $server
+     * @return IRC
+     */
+    public function getConnector(DOG_Server $server)
+    {
+        return $server->getConnector();
+    }
+    
+    /**
+     * @param DOG_Server $server
+     * @return DOG_IRCServerSettings
+     */
+    public function getSettings(DOG_Server $server)
+    {
+        return $this->getConnector($server)->getSettings();
+    }
     
     public function irc_ERROR(DOG_Server $server, $raw)
     {
@@ -66,6 +86,31 @@ final class Events extends DOG_Command
         $room->addUser($user);
         Dog::instance()->event('dog_join', $server, $user, $room);
     }
+
+    ###############
+    ### Numeric ###
+    ###############
+    
+    /**
+     * Welcome message.
+     * @param DOG_Server $server
+     * @param DOG_User $user
+     * @param string $me
+     * @param string $welcome
+     */
+    public function irc_001(DOG_Server $server, DOG_User $user, $me, $welcome)
+    {
+        $this->getConnector($server)->nickname = $me;
+        $user->saveVar('doguser_service', '1');
+    }
+    
+    public function irc_002(DOG_Server $server, DOG_User $user, $me, $version)
+    {
+        $settings = $this->getSettings($server);
+        $settings->saveVar('irc_server_software', Common::regex('/running version (.*)$/iuD', $version));
+    }
+    
+    
     
     /**
      * Online list

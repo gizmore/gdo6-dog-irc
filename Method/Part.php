@@ -7,7 +7,6 @@ use GDO\Dog\DOG_Room;
 use GDO\Dog\DOG_Server;
 use GDO\Dog\Dog;
 use GDO\Dog\DOG_User;
-use GDO\Dog\DOG_Command;
 
 
 /**
@@ -35,17 +34,14 @@ final class Part extends DOG_IRCCommand
         $message->server->removeRoom($message->room);
         
         ### Set autojoin flag
-        /**
-         * @var Join $join
-         */
-        $join = DOG_Command::byTrigger('join_channel');
+        $join = Join::byTrigger('join_channel');
         $join->setConfigValueRoom($message->room, 'autojoin', false);
     }
     
     public function irc_PART(DOG_Server $server, DOG_User $user, $roomName)
     {
         $room = DOG_Room::getOrCreate($server, $roomName);
-        
+        $server->removeRoom($room);
         
     }
     
