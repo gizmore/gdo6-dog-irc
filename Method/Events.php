@@ -37,7 +37,7 @@ final class Events extends DOG_Command
     
     public function irc_ERROR(DOG_Server $server, $raw)
     {
-        $server->getConnector()->disconnect($raw);
+        $this->getConnector($server)->disconnected();
     }
     
     public function irc_PING(DOG_Server $server, $ping)

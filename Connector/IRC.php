@@ -102,18 +102,19 @@ class IRC extends DOG_Connector
     	$this->connected(true);
     	$this->nickname = null;
     	$this->registered = false;
-    	
     	return true;
     }
     
     public function disconnect($reason)
     {
         $this->send("QUIT :{$reason}");
-        fclose($this->socket);
+    }
+    
+    public function disconnected()
+    {
         $this->socket = null;
         $this->context = null;
         $this->connected(false);
-        $this->server->disconnect();
     }
     
     public function readMessage()
@@ -124,12 +125,12 @@ class IRC extends DOG_Connector
         }
 		if (feof($this->socket))
 		{
-			$this->disconnect('I got feof!');
+// 			$this->disconnect('I got feof!');
 			return false;
 		}
 		if ($raw = fgets($this->socket, 2047))
 		{
-		    $raw = trim($raw);
+		    $raw = rtrim($raw);
 		    if (defined('GWF_CONSOLE_VERBOSE'))
 		    {
 		        Logger::logCron(sprintf('%s << %s', $this->server->displayName(), $raw));
@@ -139,53 +140,67 @@ class IRC extends DOG_Connector
 		return false;
 	}
 	
+	/**
+	 * Parse and execute the next message.
+	 * Optimized for speed.
+	 * @author gizmore
+	 * @version 6.10
+	 * @since 6.10
+	 * @param string $raw
+	 * @return boolean
+	 */
 	private function parseMessage($raw)
 	{
-	    if (Strings::startsWith($raw, 'ERROR'))
+	    if (strpos($raw, 'ERR') === 0)
 	    {
 	        Dog::instance()->event('irc_ERROR', $this->server, Strings::substrFrom($raw, 'ERROR :'));
 	        return false;
 	    }
 	    
-	    $by_space = preg_split('/[ ]+/', $raw);
-	    
-	    $from = $raw[0] === ':' ? ltrim(array_shift($by_space), ':') : '';
-	    $from = Strings::substrTo($from, '!', $from);
-	    $event = preg_replace('/[^a-z_0-9]/i', '', array_shift($by_space));
-	    $args = [];
-	    
-	    $len = count($by_space);
-	    while ($len)
+	    $from = '';
+	    if ($raw[0] === ':')
 	    {
-	        $arg = array_shift($by_space);
-	        if (strlen($arg) === 0)
+	        $raw = substr($raw, 1);
+	        $i = strpos($raw, ' ');
+	        $from = substr($raw, 0, $i);
+	        $raw = substr($raw, $i + 1);
+	        if (false !== ($i = strpos($from, '!')))
 	        {
-	            # trailing spaces?
+	            $from = substr($from, 0, $i);
 	        }
-	        elseif ($arg[0] === ':')
-	        {
-	            # implode everything after colon
-	            $args[] = trim(substr($arg, 1).' '.implode(' ', $by_space));
-	            break;
-	        }
-	        else
-	        {
-	            # Normal arg
-	            $args[] = $arg;
-	        }
-	        $len--;
 	    }
+
+	    $i = strpos($raw, ' ');
+	    $event = substr($raw, 0, $i);
+	    $raw = substr($raw, $i + 1);
+	    
+	    $args = [$this->server];
 	    
 	    if ($from)
 	    {
-	        $user = DOG_User::getOrCreateUser($this->server, $from);
+	        $args[] = $user = DOG_User::getOrCreateUser($this->server, $from);
 	        GDO_User::$CURRENT = $user->getGDOUser();
 	        $this->server->addUser($user);
-	        array_unshift($args, $user);
 	    }
 	    
-	    array_unshift($args, $this->server);
-	    
+	    while ($raw)
+	    {
+	        if ($raw[0] === ':')
+	        {
+	            $args[] = substr($raw, 1);
+	            break;
+	        }
+	        
+	        elseif (false === ($i = strpos($raw, ' ')))
+	        {
+	            $args[] = $raw;
+	            break;
+	        }
+
+	        $args[] = substr($raw, 0, $i);
+    	    $raw = substr($raw, $i + 1);
+	    }
+
 	    Dog::instance()->event("irc_{$event}", ...$args);
 	    
 	    if (!$this->registered)
@@ -197,6 +212,10 @@ class IRC extends DOG_Connector
 	    return true;
 	}
 	
+	/**
+	 * Generate the next nickname.
+	 * @return string
+	 */
 	private function getNickname()
 	{
 	    if ($this->nickname === null)
