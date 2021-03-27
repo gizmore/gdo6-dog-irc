@@ -17,6 +17,7 @@ final class IRCLib
         return array(
             '+' => Dog::VOICE,
             '%' => Dog::HALFOP,
+            '&' => Dog::OPERATOR,
             '@' => Dog::OPERATOR,
         );
     }

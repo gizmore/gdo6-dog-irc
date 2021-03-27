@@ -26,6 +26,8 @@ final class JoinServer extends DOG_IRCCommand
     
     public function getPermission() { return Dog::OPERATOR; }
 
+    public function getConnectors() { return ['IRC', 'Bash']; }
+    
     public function gdoParameters()
     {
         return array(
