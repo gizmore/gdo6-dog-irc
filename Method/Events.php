@@ -12,6 +12,7 @@ use GDO\DogIRC\Connector\IRC;
 use GDO\User\GDO_UserPermission;
 use GDO\DogIRC\DOG_IRCServerSettings;
 use GDO\Util\Common;
+use GDO\Core\Module_Core;
 
 final class Events extends DOG_Command
 {
@@ -74,7 +75,7 @@ final class Events extends DOG_Command
         switch ($text)
         {
             case 'VERSION':
-                $connector->sendCTCP($user->getName(), "GDO6 - DOG BOT v6.11 - IRC CONNECTOR v6.11");
+                $connector->sendCTCP($user->getName(), "GDO6 - DOG BOT ".Module_Core::$GDO_REVISION." - IRC CONNECTOR v6.10.1");
                 break;
         }
     }

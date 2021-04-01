@@ -56,9 +56,9 @@ class IRC extends DOG_Connector
             ],
         ];
         
-    	if (false === ($this->context = @stream_context_create($options)))
+    	if (false === ($this->context = stream_context_create($options)))
     	{
-    		Logger::logError('IRC Connector cannot create stram context.');
+    		Logger::logError('IRC Connector cannot create stream context.');
     		return false;
     	}
     	
@@ -72,7 +72,7 @@ class IRC extends DOG_Connector
     		$this->context)))
     	{
     		Logger::logError('IRC Connector cannot create stram context.');
-    		Logger::logError("Dog_IRC::connect() ERROR: stream_socket_client(): URL={$this->server->getURL()} CONNECT_TIMEOUT={$this->server->getConnectTimeout()}");
+    		Logger::logError("Dog_IRC::connect() ERROR: stream_socket_client(): URL={$this->server->getURL()->raw} CONNECT_TIMEOUT={$this->server->getConnectTimeout()}");
     		Logger::logError(sprintf('Dog_IRC::connect() $errno=%d; $errstr=%s', $errno, $errstr));
     	}
     	
@@ -281,16 +281,19 @@ class IRC extends DOG_Connector
 	
 	public function sendToRoom(DOG_Room $room, $text)
 	{
+	    parent::sendToRoom($room, $text);
 	    return $this->sendPRIVMSG($room->getName(), $text);
 	}
 	
 	public function sendToUser(DOG_User $user, $text)
 	{
+	    parent::sendToUser($user, $text);
 	    return $this->sendPRIVMSG($user->getName(), $text);
 	}
 	
 	public function sendNoticeToUser(DOG_User $user, $text)
 	{
+	    parent::sendNoticeToUser($user, $text);
 	    return $this->sendNOTICE($user->getName(), $text);
 	}
 	

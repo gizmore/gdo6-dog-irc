@@ -18,7 +18,7 @@ use GDO\DB\GDT_Checkbox;
  */
 final class Join extends DOG_IRCCommand
 {
-    public $trigger = 'join_channel';
+    public $trigger = 'join';
     
     private $passwords = array();
     
