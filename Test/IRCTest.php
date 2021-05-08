@@ -11,14 +11,14 @@ final class IRCTest extends IRCTestCase
     public function testServerAdd()
     {
         $response = $this->bashCommand('irc.join_network');
-        if (GWF_CONSOLE_VERBOSE)
+        if (GDO_CONSOLE_VERBOSE)
         {
             echo $response . "\n";
         }
         assertMatchesRegularExpression('/usage:/is', $response, 'Check if usage is shown on error');
         
         $response = $this->bashCommand('irc.join_network irc://localhost:6667');
-        if (GWF_CONSOLE_VERBOSE)
+        if (GDO_CONSOLE_VERBOSE)
         {
             echo $response . "\n";
         }
