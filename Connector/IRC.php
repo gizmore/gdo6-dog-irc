@@ -179,7 +179,7 @@ class IRC extends DOG_Connector
 	    if ($from)
 	    {
 	        $args[] = $user = DOG_User::getOrCreateUser($this->server, $from);
-	        GDO_User::$CURRENT = $user->getGDOUser();
+	        GDO_User::setCurrent($user->getGDOUser());
 	        $this->server->addUser($user);
 	    }
 	    
