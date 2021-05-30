@@ -134,6 +134,7 @@ class IRC extends DOG_Connector
 		    if (defined('GDO_CONSOLE_VERBOSE'))
 		    {
 		        Logger::logCron(sprintf('%s << %s', $this->server->displayName(), $raw));
+// 		        ob_flush();
 		    }
     		return $this->parseMessage($raw);
 		}
@@ -304,6 +305,7 @@ class IRC extends DOG_Connector
 	        if (defined('GDO_CONSOLE_VERBOSE'))
 	        {
 	            Logger::logCron(sprintf('%s >> %s', $this->server->displayName(), $text));
+// 	            ob_flush();
 	        }
     	    if (!fwrite($this->socket, "$text\r\n"))
     	    {

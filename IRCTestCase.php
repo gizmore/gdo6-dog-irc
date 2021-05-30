@@ -83,7 +83,7 @@ class IRCTestCase extends DogTestCase
     public function ircPrivmsg($text, DOG_Room $room=null, $usleep=500000)
     {
         ob_start();
-        ob_implicit_flush(false);
+//         ob_implicit_flush(false);
         $server = $this->getServer();
         $message = DOG_Message::make()->
             user($this->doguser)->server($server)->
@@ -91,7 +91,7 @@ class IRCTestCase extends DogTestCase
         Dog::instance()->event('dog_message', $message);
         $response = ob_get_contents();
         ob_end_clean();
-        ob_implicit_flush(true);
+//         ob_implicit_flush(true);
         return $response . "\n". $this->ircResponse($usleep);
     }
     
@@ -104,33 +104,39 @@ class IRCTestCase extends DogTestCase
     
     public function ircResponse($usleep=500000)
     {
+        $mode = 1;
         $response = '';
         try
         {
-            while (true)
+            usleep(250000); # 250ms
+            ob_start();
+//             ob_implicit_flush(false);
+            while ($mode)
             {
-                usleep($usleep);
-                ob_implicit_flush(false);
-                ob_start();
                 Dog::instance()->mainloopStep();
                 $r = ob_get_contents();
                 $response .= $r;
-                ob_end_clean();
-                ob_implicit_flush(true);
+                ob_clean();
                 if (!$r)
                 {
-                    break;
+                    if ($mode == 2)
+                    {
+                        break;
+                    }
+                    $mode = 2;
                 }
+                usleep($usleep); # 500ms
             }
+            return $response;
         }
         catch (\Throwable $ex)
         {
-            ob_implicit_flush(true);
-            ob_end_clean();
+            throw $ex;
         }
         finally
         {
-           return $response;
+           ob_end_clean();
+//            ob_implicit_flush(true);
         }
     }
     

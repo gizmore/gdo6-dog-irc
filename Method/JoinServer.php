@@ -96,7 +96,7 @@ final class JoinServer extends DOG_IRCCommand
             $server->connectionAttemptMax = 50;
             
             $pw = Random::randomKey(8, Random::ALPHANUMUPLOW);
-            Super::byTrigger('super')->setConfigValueServer($server, 'super_password', $pw);
+            Super::byTrigger('auth.super')->setConfigValueServer($server, 'super_password', $pw);
             
             $user->send(t('msg_dog_irc_server_fresh', [$server->displayName(), $server->getConnector()->nickname, $pw]));
         }
