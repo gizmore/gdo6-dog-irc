@@ -31,7 +31,7 @@ final class JoinServer extends DOG_IRCCommand
     public function gdoParameters()
     {
         return array(
-            GDT_Url::make('url')->schemes('irc', 'ircs')->notNull(),
+            GDT_Url::make('url')->schemes('irc', 'ircs')->allowLocal()->notNull(),
             GDT_Username::make('nickname')->initial($this->getDefaultNickname()),
             GDT_Secret::make('password'),
         );
