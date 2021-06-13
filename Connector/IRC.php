@@ -14,6 +14,7 @@ use GDO\Util\Random;
 use GDO\DogIRC\IRCLib;
 use GDO\DogIRC\DOG_IRCServerSettings;
 use GDO\Dog\Obfuscate;
+use GDO\Language\Trans;
 
 /**
  * IRC Connector
@@ -180,7 +181,9 @@ class IRC extends DOG_Connector
 	    if ($from)
 	    {
 	        $args[] = $user = DOG_User::getOrCreateUser($this->server, $from);
-	        GDO_User::setCurrent($user->getGDOUser());
+	        $gdoUser = $user->getGDOUser();
+	        GDO_User::setCurrent($gdoUser);
+	        Trans::setISO($gdoUser->getLangISO());
 	        $this->server->addUser($user);
 	    }
 	    
@@ -319,11 +322,35 @@ class IRC extends DOG_Connector
 	}
 	
 	/**
+	 * Makes multi-line work.
+	 * @param string $message
+	 * @param number $split_len
+	 */
+	public function sendSplitted($message, $split_len=420)
+	{
+	    $prefix = Strings::substrTo($message, ':') . ':';
+	    $messages = explode("\n", $message);
+	    $first = true;
+	    foreach ($messages as $message)
+	    {
+	        if ($message = trim($message))
+	        {
+    	        if (!$first)
+    	        {
+    	            $message = $prefix . $message;
+    	        }
+    	        $this->sendSplittedB($message);
+	        }
+	        $first = false;
+	    }
+	}
+	
+	/**
 	 * Send a message split into multiple.
 	 * @param string $message The real message.
 	 * @param int $split_len The length for each chunk.
 	 */
-	public function sendSplitted($message, $split_len=420)
+	public function sendSplittedB($message, $split_len=420)
 	{
 	    $len = strlen($message);
 	    

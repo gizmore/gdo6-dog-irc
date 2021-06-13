@@ -14,9 +14,18 @@ use GDO\DogIRC\DOG_IRCServerSettings;
 use GDO\Util\Common;
 use GDO\Core\Module_Core;
 
+/**
+ * IRC Event handler.
+ * @author gizmore
+ */
 final class Events extends DOG_Command
 {
     public $priority = 1;
+    
+    public function isWebMethod() { return false; }
+    public function isHiddenMethod() { return true; }
+    public function isRoomMethod() { return false; }
+    public function isPrivateMethod() { return false; }
     
     /**
      * @param DOG_Server $server
@@ -153,6 +162,7 @@ final class Events extends DOG_Command
      */
     public function irc_433(DOG_Server $server, DOG_User $user, $star, $me, $text)
     {
-        
+        $this->getConnector($server)->send("NICK ".$server->nextUsername());
     }
+    
 }

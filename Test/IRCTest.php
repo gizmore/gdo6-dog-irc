@@ -24,7 +24,7 @@ final class IRCTest extends IRCTestCase
         $response .= $this->ircResponse(1000000);
         assertTrue(stripos($response, ' invisible ')!==false, 'check if connection to IRC is establishing');
 
-        $response = $this->ircPrivmsg('test.ping.');
+        $response = $this->ircPrivmsg('ping');
         assertTrue(stripos($response, 'PONG')!==false, 'check if connection to IRC is established');
     }
     
