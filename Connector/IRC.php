@@ -1,6 +1,7 @@
 <?php
 namespace GDO\DogIRC\Connector;
 
+use GDO\Date\Time;
 use GDO\Dog\DOG_Connector;
 use GDO\Core\Application;
 use GDO\Core\Logger;
@@ -184,6 +185,7 @@ class IRC extends DOG_Connector
 	        $gdoUser = $user->getGDOUser();
 	        GDO_User::setCurrent($gdoUser);
 	        Trans::setISO($gdoUser->getLangISO());
+	        Time::setTimezone($gdoUser->getTimezone());
 	        $this->server->addUser($user);
 	    }
 	    

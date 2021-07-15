@@ -1,7 +1,6 @@
 <?php
 namespace GDO\DogIRC;
 
-use GDO\Dog\DogTestCase;
 use GDO\Dog\DOG_User;
 use GDO\Dog\DOG_Server;
 use GDO\Tests\MethodTest;
@@ -10,6 +9,7 @@ use GDO\User\GDO_UserPermission;
 use GDO\Dog\Dog;
 use GDO\Dog\DOG_Room;
 use GDO\Dog\DOG_Message;
+use GDO\Dog\Test\DogTestCase;
 
 class IRCTestCase extends DogTestCase
 {
