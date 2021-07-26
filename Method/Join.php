@@ -39,7 +39,7 @@ final class Join extends DOG_IRCCommand
         );
     }
     
-    public function dogExecute(DOG_Message $message, $roomName, $password)
+    public function dogExecute(DOG_Message $message, $roomName, $password=null)
     {
         /** @var \GDO\DogIRC\Connector\IRC $connector **/
         $connector = $message->server->getConnector();
@@ -94,6 +94,18 @@ final class Join extends DOG_IRCCommand
                 $connector->send($command);
             }
         }
+    }
+    
+    /**
+     * If dog get's kicked, set autojoin to off.
+     * 
+     * @param DOG_Server $server
+     * @param DOG_User $user
+     * @param DOG_Room $room
+     */
+    public function dog_kicked(DOG_Server $server, DOG_User $user, DOG_Room $room)
+    {
+        $this->setConfigValueRoom($room, 'autojoin', false);
     }
     
 }

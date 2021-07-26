@@ -222,7 +222,12 @@ class IRC extends DOG_Connector
 	 * Generate the next nickname.
 	 * @return string
 	 */
-	private function getNickname()
+	public function getNickname()
+	{
+	    return $this->nickname;
+	}
+	
+	private function getNextNickname()
 	{
 	    if ($this->nickname === null)
 	    {
@@ -238,7 +243,7 @@ class IRC extends DOG_Connector
 	
 	private function sendAuth()
 	{
-	    $nick = $this->getNickname();
+	    $nick = $this->getNextNickname();
 	    
 	    if (!$this->send(sprintf('USER %s %s %s :%s', 
 	        $nick, 'dog.gizmore.org', $this->server->getDomain(), 'Dawg')))

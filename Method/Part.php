@@ -15,7 +15,7 @@ use GDO\Dog\DOG_User;
  */
 final class Part extends DOG_IRCCommand
 {
-    public $trigger = 'part_channel';
+    public $trigger = 'part';
     
     public function getPermission() { return Dog::OPERATOR; }
     
@@ -33,7 +33,7 @@ final class Part extends DOG_IRCCommand
         $message->server->removeRoom($message->room);
         
         ### Set autojoin flag
-        $join = Join::byTrigger('join_channel');
+        $join = Join::byTrigger('irc.join');
         $join->setConfigValueRoom($message->room, 'autojoin', false);
     }
     

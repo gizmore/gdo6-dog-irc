@@ -25,6 +25,11 @@ class IRCTestCase extends DogTestCase
         }
     }
     
+    /**
+     * {@inheritDoc}
+     * @see \GDO\Dog\Test\DogTestCase::getServer()
+     * @return DOG_Server
+     */
     protected function getServer()
     {
         $server = DOG_Server::getBy('serv_connector', 'IRC');

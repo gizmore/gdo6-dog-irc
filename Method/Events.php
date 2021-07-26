@@ -97,6 +97,33 @@ final class Events extends DOG_Command
         Dog::instance()->event('dog_join', $server, $user, $room);
     }
 
+    public function irc_KICK(DOG_Server $server, DOG_User $user, $roomName, $userName)
+    {
+        $room = DOG_Room::getOrCreate($server, $roomName);
+        $userKicked = DOG_User::getOrCreateUser($server, $userName);
+        $server->addRoom($room);
+        $server->addUser($userKicked);
+        $room->removeUser($userKicked);
+        if ($userKicked === $server->getDog())
+        {
+            $server->removeRoom($room);
+            Dog::instance()->event('dog_kicked', $server, $user, $room);
+        }
+        Dog::instance()->event('dog_kick', $server, $user, $room);
+    }
+    
+    public function irc_PART(DOG_Server $server, DOG_User $user, $roomName)
+    {
+        $room = DOG_Room::getOrCreate($server, $roomName);
+        $server->addRoom($room);
+        if ($user === $server->getDog())
+        {
+            $server->removeRoom($room);
+            Dog::instance()->event('dog_parted', $server, $user, $room);
+        }
+        Dog::instance()->event('dog_part', $server, $user, $room);
+    }
+    
     ###############
     ### Numeric ###
     ###############
