@@ -84,7 +84,7 @@ final class Events extends DOG_Command
         switch ($text)
         {
             case 'VERSION':
-                $connector->sendCTCP($user->getName(), "GDO6 - DOG BOT ".Module_Core::$GDO_REVISION." - IRC CONNECTOR v6.10.1");
+                $connector->sendCTCP($user->getName(), "GDO6 - DOG BOT ".Module_Core::GDO_REVISION." - IRC CONNECTOR v6.10.6");
                 break;
         }
     }
