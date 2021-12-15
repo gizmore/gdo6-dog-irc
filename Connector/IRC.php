@@ -366,7 +366,7 @@ class IRC extends DOG_Connector
 	        return $this->send($message);
 	    }
 	    
-	    if (Strings::startsWith($message, "NOTICE ") || Strings::startsWith($message, "PRIVMSG"))
+	    if (str_starts_with($message, "NOTICE ") || str_starts_with($message, "PRIVMSG"))
 	    {
 	        $prefix = Strings::substrTo($message, ':') . ':';
 	        $message = Strings::substrFrom($message, ':');
