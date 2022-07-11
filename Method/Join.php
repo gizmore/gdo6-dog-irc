@@ -3,14 +3,14 @@ namespace GDO\DogIRC\Method;
 
 use GDO\Dog\DOG_Message;
 use GDO\DogIRC\DOG_IRCCommand;
-use GDO\DB\GDT_String;
+use GDO\Core\GDT_String;
 use GDO\Core\GDT_Secret;
 use GDO\Dog\DOG_Room;
 use GDO\Dog\DOG_Server;
 use GDO\Dog\Dog;
 use GDO\Dog\DOG_User;
 use GDO\DogIRC\Connector\IRC;
-use GDO\DB\GDT_Checkbox;
+use GDO\Core\GDT_Checkbox;
 
 /**
  * Make the bot join a channel.
@@ -22,7 +22,7 @@ final class Join extends DOG_IRCCommand
     
     private $passwords = array();
     
-    public function getPermission() { return Dog::HALFOP; }
+    public function getPermission() : ?string { return Dog::HALFOP; }
     
     public function getConfigRoom()
     {
@@ -31,7 +31,7 @@ final class Join extends DOG_IRCCommand
         );
     }
     
-    public function gdoParameters()
+    public function gdoParameters() : array
     {
         return array(
             GDT_String::make('channel')->notNull(),

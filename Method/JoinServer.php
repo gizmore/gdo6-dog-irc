@@ -24,11 +24,11 @@ final class JoinServer extends DOG_IRCCommand
     public $priority = 10;
     public $trigger = 'join_network';
     
-    public function getPermission() { return Dog::OPERATOR; }
+    public function getPermission() : ?string { return Dog::OPERATOR; }
 
     public function getConnectors() { return ['IRC', 'Bash']; }
     
-    public function gdoParameters()
+    public function gdoParameters() : array
     {
         return array(
             GDT_Url::make('url')->schemes('irc', 'ircs')->allowLocal()->notNull(),

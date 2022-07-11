@@ -5,13 +5,13 @@ use GDO\Core\GDO_Module;
 
 final class Module_DogIRC extends GDO_Module
 {
-    public $module_priority = 45;
+    public int $priority = 45;
     
-    public function getDependencies() { return ['DogAuth']; }
+    public function getDependencies() : array { return ['DogAuth']; }
     
-    public function onLoadLanguage() { return $this->loadLanguage('lang/irc'); }
+    public function onLoadLanguage() : void { $this->loadLanguage('lang/irc'); }
     
-    public function getClasses()
+    public function getClasses() : array
     {
         return array(
             DOG_IRCServerSettings::class,

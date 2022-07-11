@@ -17,7 +17,7 @@ final class Part extends DOG_IRCCommand
 {
     public $trigger = 'part';
     
-    public function getPermission() { return Dog::OPERATOR; }
+    public function getPermission() : ?string { return Dog::OPERATOR; }
     
     public function isPrivateMethod() { return false; }
     

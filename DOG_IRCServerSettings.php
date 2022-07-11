@@ -3,12 +3,12 @@ namespace GDO\DogIRC;
 
 use GDO\Core\GDO;
 use GDO\Dog\GDT_Server;
-use GDO\DB\GDT_String;
+use GDO\Core\GDT_String;
 use GDO\Dog\DOG_Server;
 
 final class DOG_IRCServerSettings extends GDO
 {
-    public function gdoColumns()
+    public function gdoColumns() : array
     {
         return array(
             GDT_Server::make('irc_server_id')->primary()->notNull(),
