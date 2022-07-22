@@ -71,7 +71,7 @@ class IRCTestCase extends DogTestCase
             $doguser = DOG_User::blank([
                 'doguser_name' => $username,
                 'doguser_server' => $sid,
-                'doguser_user_id' => $user->getID(),
+                'doguser_user' => $user->getID(),
             ])->insert();
         }
         
