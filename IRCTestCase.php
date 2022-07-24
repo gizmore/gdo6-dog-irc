@@ -3,7 +3,7 @@ namespace GDO\DogIRC;
 
 use GDO\Dog\DOG_User;
 use GDO\Dog\DOG_Server;
-use GDO\Tests\MethodTest;
+use GDO\Tests\GDT_MethodTest;
 use GDO\User\GDO_User;
 use GDO\User\GDO_UserPermission;
 use GDO\Dog\Dog;
@@ -150,9 +150,9 @@ class IRCTestCase extends DogTestCase
         return GDO_User::findBy('user_name', 'gizmore{2}');
     }
     
-    protected function restoreUserPermissions(GDO_User $user)
+    protected function restoreUserPermissions(GDO_User $user) : void
     {
-        if (count(MethodTest::$USERS))
+        if (count(GDT_MethodTest::$USERS))
         {
             $g2 = GDO_User::getByName('gizmore{2}');
             if ($g2)
