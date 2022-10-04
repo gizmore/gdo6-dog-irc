@@ -81,7 +81,7 @@ final class JoinServer extends DOG_IRCCommand
         if ($user = $server->tempGet('irc_join_network'))
         {
             $server->insert();
-            $user->send(t('msg_dog_irc_server_connected', [$server->displayName()]));
+            $user->send(t('msg_dog_irc_server_connected', [$server->renderName()]));
         }
     }
     
@@ -98,7 +98,7 @@ final class JoinServer extends DOG_IRCCommand
             $pw = Random::randomKey(8, Random::ALPHANUMUPLOW);
             Super::byTrigger('super')->setConfigValueServer($server, 'super_password', $pw);
             
-            $user->send(t('msg_dog_irc_server_fresh', [$server->displayName(), $server->getConnector()->nickname, $pw]));
+            $user->send(t('msg_dog_irc_server_fresh', [$server->renderName(), $server->getConnector()->nickname, $pw]));
         }
     }
 }
