@@ -11,8 +11,11 @@ use GDO\DogIRC\Connector\IRC;
  */
 abstract class DOG_IRCCommand extends DOG_Command
 {
-    public $group = 'IRC';
-    
+	public function getCLITriggerGroup(): string
+	{
+		return 'irc';
+	}
+	
     public function getConnectors() { return ['IRC']; }
     
     /**

@@ -22,7 +22,11 @@ use GDO\Dog\DOG_User;
 final class JoinServer extends DOG_IRCCommand
 {
     public $priority = 10;
-    public $trigger = 'join_network';
+    
+    public function getCLITrigger()
+    {
+    	return 'irc.join_network';
+    }
     
     public function getPermission() : ?string { return Dog::OPERATOR; }
 
@@ -31,7 +35,7 @@ final class JoinServer extends DOG_IRCCommand
     public function gdoParameters() : array
     {
         return array(
-            GDT_Url::make('url')->schemes('irc', 'ircs')->allowInternal()->notNull(),
+        	GDT_Url::make('url')->schemes('irc', 'ircs')->allowInternal()->allowExternal(true, false)->notNull(),
             GDT_Username::make('nickname')->initial($this->getDefaultNickname()),
             GDT_Secret::make('password'),
         );

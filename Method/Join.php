@@ -18,8 +18,11 @@ use GDO\Core\GDT_Checkbox;
  */
 final class Join extends DOG_IRCCommand
 {
-    public $trigger = 'join';
-    
+	public function getCLITrigger()
+	{
+		return 'irc.join';
+	}
+	
     private $passwords = array();
     
     public function getPermission() : ?string { return Dog::HALFOP; }

@@ -308,7 +308,7 @@ class IRC extends DOG_Connector
 	    return $this->sendNOTICE($user->getName(), $text);
 	}
 	
-	public function send($text)
+	public function send(string $text): bool
 	{
 	    if ($this->socket)
 	    {

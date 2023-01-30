@@ -10,6 +10,7 @@ use GDO\Dog\Dog;
 use GDO\Dog\DOG_Room;
 use GDO\Dog\DOG_Message;
 use GDO\Dog\Test\DogTestCase;
+use GDO\User\GDT_UserType;
 
 class IRCTestCase extends DogTestCase
 {
@@ -59,7 +60,7 @@ class IRCTestCase extends DogTestCase
         {
             $user = GDO_User::blank([
                 'user_name' => $longUsername,
-                'user_type' => GDO_User::MEMBER,
+                'user_type' => GDT_UserType::MEMBER,
             ])->insert();
         }
         
@@ -152,7 +153,7 @@ class IRCTestCase extends DogTestCase
     
     protected function restoreUserPermissions(GDO_User $user) : void
     {
-        if (count(GDT_MethodTest::$USERS))
+    	if (count(GDT_MethodTest::$TEST_USERS))
         {
             $g2 = GDO_User::getByName('gizmore{2}');
             if ($g2)

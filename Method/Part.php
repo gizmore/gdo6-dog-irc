@@ -15,8 +15,11 @@ use GDO\Dog\DOG_User;
  */
 final class Part extends DOG_IRCCommand
 {
-    public $trigger = 'part';
-    
+	public function getCLITrigger()
+	{
+		return 'irc.part';
+	}
+	
     public function getPermission() : ?string { return Dog::OPERATOR; }
     
     public function isPrivateMethod() { return false; }
