@@ -11,8 +11,8 @@ use GDO\Dog\DOG_Message;
 use GDO\DogIRC\Connector\IRC;
 use GDO\User\GDO_UserPermission;
 use GDO\DogIRC\DOG_IRCServerSettings;
-use GDO\Util\Common;
 use GDO\Core\Module_Core;
+use GDO\Util\Regex;
 
 /**
  * IRC Event handler.
@@ -145,7 +145,7 @@ final class Events extends DOG_Command
     public function irc_002(DOG_Server $server, DOG_User $user, $me, $version)
     {
         $settings = $this->getSettings($server);
-        $settings->saveVar('irc_server_software', Common::regex('/running version (.*)$/iuD', $version));
+        $settings->saveVar('irc_server_software', Regex::firstMatch('/running version (.*)$/iuD', $version));
     }
     
     

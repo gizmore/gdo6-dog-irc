@@ -323,6 +323,10 @@ class IRC extends DOG_Connector
     	        $this->disconnect("SEND failed");
     	        return false;
     	    }
+    	    if (Application::$INSTANCE->isUnitTests())
+    	    {
+    	    	echo "$text\n";
+    	    }
     	    return true;
 	    }
 	    return false;
