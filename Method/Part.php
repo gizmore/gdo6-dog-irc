@@ -18,7 +18,7 @@ use GDO\DogIRC\DOG_IRCCommand;
 final class Part extends DOG_IRCCommand
 {
 
-	public function getCLITrigger()
+	public function getCLITrigger(): string
 	{
 		return 'irc.part';
 	}

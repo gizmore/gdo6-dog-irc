@@ -22,7 +22,7 @@ final class Join extends DOG_IRCCommand
 
 	private $passwords = [];
 
-	public function getCLITrigger()
+	public function getCLITrigger(): string
 	{
 		return 'irc.join';
 	}

@@ -25,7 +25,7 @@ final class JoinServer extends DOG_IRCCommand
 
 	public $priority = 10;
 
-	public function getCLITrigger()
+	public function getCLITrigger(): string
 	{
 		return 'irc.join_network';
 	}
