@@ -38,28 +38,27 @@ class IRCTestCase extends DogTestCase
 			{
 				if ($user->getID() === $g2->getID())
 				{
-					$table = GDO_UserPermission::table();
-					$table->grant($user, 'admin');
-					$table->grant($user, 'staff');
-					$table->grant($user, 'cronjob');
-					$table->grant($user, Dog::VOICE);
-					$table->grant($user, Dog::HALFOP);
-					$table->grant($user, Dog::OPERATOR);
-					$table->grant($user, Dog::ADMIN);
+					GDO_UserPermission::grant($user, 'admin');
+					GDO_UserPermission::grant($user, 'staff');
+					GDO_UserPermission::grant($user, 'cronjob');
+					GDO_UserPermission::grant($user, Dog::VOICE);
+					GDO_UserPermission::grant($user, Dog::HALFOP);
+					GDO_UserPermission::grant($user, Dog::OPERATOR);
+					GDO_UserPermission::grant($user, Dog::ADMIN);
 					$user->changedPermissions();
 				}
 			}
 		}
 	}
 
-	protected function userGizmore2()
+	protected function userGizmore2(): GDO_User
 	{
 		return GDO_User::findBy('user_name', 'gizmore{2}');
 	}
 
-	public function createUser($username, DOG_Server $server = null): DOG_User
+	public function createUser(string $username, DOG_Server $server = null): DOG_User
 	{
-		$server = $server ? $server : $this->getServer();
+		$server = $server ?: $this->getServer();
 
 		$sid = $server->getID();
 		$longUsername = "{$username}\{{$sid}\}";
@@ -95,15 +94,10 @@ class IRCTestCase extends DogTestCase
 		return $doguser;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 * @return DOG_Server
-	 * @see DogTestCase::getServer
-	 */
 	protected function getServer(): DOG_Server
 	{
 		$server = DOG_Server::getBy('serv_connector', 'IRC');
-		return $server ? $server : parent::getServer();
+		return $server ?: parent::getServer();
 	}
 
 	protected function getDogRoom()
@@ -120,17 +114,19 @@ class IRCTestCase extends DogTestCase
 
 	public function ircPrivmsg($text, DOG_Room $room = null, $usleep = 500000)
 	{
-		ob_start();
+//		ob_start();
 //         ob_implicit_flush(false);
 		$server = $this->getServer();
 		$message = DOG_Message::make()->
 		user($this->doguser)->server($server)->
 		room($room)->text($text);
 		Dog::instance()->event('dog_message', $message);
-		$response = ob_get_contents();
-		ob_end_clean();
+//		$response = ob_get_contents();
+//		ob_end_clean();
 //         ob_implicit_flush(true);
-		return $response . "\n" . $this->ircResponse($usleep);
+		$res = $this->ircResponse($usleep);
+		echo $res;
+		return $res;
 	}
 
 	public function ircResponse($usleep = 500000)
@@ -140,7 +136,7 @@ class IRCTestCase extends DogTestCase
 		try
 		{
 			usleep(250000); # 250ms
-			ob_start();
+//			ob_start();
 //             ob_implicit_flush(false);
 			while ($mode)
 			{
@@ -158,6 +154,7 @@ class IRCTestCase extends DogTestCase
 				}
 				usleep($usleep); # 500ms
 			}
+			echo $response;
 			return $response;
 		}
 		catch (Throwable $ex)
@@ -166,7 +163,7 @@ class IRCTestCase extends DogTestCase
 		}
 		finally
 		{
-			ob_end_clean();
+//			ob_end_clean();
 //            ob_implicit_flush(true);
 		}
 	}

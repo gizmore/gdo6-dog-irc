@@ -44,7 +44,7 @@ final class Join extends DOG_IRCCommand
 		];
 	}
 
-	public function dogExecute(DOG_Message $message, $roomName, $password = null)
+	public function dogExecute(DOG_Message $message, string $roomName, string $password = null)
 	{
 		/** @var IRC $connector * */
 		$connector = $message->server->getConnector();

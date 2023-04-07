@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace GDO\DogIRC\Connector;
 
 use GDO\Core\Application;
@@ -20,27 +21,27 @@ use GDO\Util\Strings;
 /**
  * IRC Connector
  *
- * @version 6.10
- * @since 3.00
+ * @version 7.0.3
+ * @since 3.0.0
  * @author gizmore
  */
 class IRC extends DOG_Connector
 {
 
-	public $nickname;
+	public ?string $nickname = null;
 
-	private $timestamp;
+	private float $timestamp;
 	private $socket;
 	private $context;
-	private $registered = false;
+	private bool $registered = false;
 
-	public function setupServer(DOG_Server $server)
+	public function setupServer(DOG_Server $server): void
 	{
-		$tls = strpos($server->getURL()->raw, 'ircs://') === 0 ? '1' : '0';
+		$tls = stripos($server->getURL()->raw, 'ircs://') === 0 ? '1' : '0';
 		$server->setVar('serv_tls', $tls);
 	}
 
-	public function obfuscate($string)
+	public function obfuscate(string $string): string
 	{
 		return Obfuscate::obfuscate($string);
 	}
@@ -64,7 +65,7 @@ class IRC extends DOG_Connector
 		$errno = 0;
 		$errstr = '';
 		if (
-			false === ($socket = @stream_socket_client(
+			false === ($socket = stream_socket_client(
 				$this->server->getConnectURL(),
 				$errno,
 				$errstr,
@@ -80,7 +81,7 @@ class IRC extends DOG_Connector
 
 		if ($this->server->getURL()->getScheme() === 'ircs')
 		{
-			if (!@stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT))
+			if (stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT))
 			{
 				Logger::logError('Dog_IRC::connect() ERROR: stream_socket_enable_crypto(true, STREAM_CRYPTO_METHOD_TLS_CLIENT)');
 				return false;
@@ -93,13 +94,13 @@ class IRC extends DOG_Connector
 //     	    return false;
 //     	}
 
-		if (!@stream_set_blocking($socket, 0))
+		if (!stream_set_blocking($socket, false))
 		{
 			Logger::logError('Dog_IRC::connect() ERROR: stream_set_blocking(): $blocked=0');
 			return false;
 		}
 
-		$this->timestamp = Application::$TIME;
+		$this->timestamp = Application::$MICROTIME;
 		$this->socket = $socket;
 		$this->connected(true);
 		$this->nickname = null;
@@ -114,23 +115,18 @@ class IRC extends DOG_Connector
 
 	public function send(string $text): bool
 	{
+		echo "{$this->server->renderName()} >> $text\n";
 		if ($this->socket)
 		{
-			if (defined('GDO_CONSOLE_VERBOSE'))
-			{
-				Logger::logCron(sprintf('%s >> %s', $this->server->renderName(), $text));
-// 	            ob_flush();
-			}
 			if (!fwrite($this->socket, "$text\r\n"))
 			{
 				$this->socket = null;
 				$this->disconnect('SEND failed');
 				return false;
 			}
-			if (Application::$INSTANCE->isUnitTests())
-			{
-				echo "$text\n";
-			}
+//			if (Application::$INSTANCE->isUnitTests())
+//			{
+//			}
 			return true;
 		}
 		return false;
@@ -150,11 +146,11 @@ class IRC extends DOG_Connector
 		if ($raw = fgets($this->socket, 2047))
 		{
 			$raw = rtrim($raw);
-			if (defined('GDO_CONSOLE_VERBOSE'))
-			{
+//			if (defined('GDO_CONSOLE_VERBOSE'))
+//			{
 				Logger::logCron(sprintf('%s << %s', $this->server->renderName(), $raw));
 // 		        ob_flush();
-			}
+//			}
 			return $this->parseMessage($raw);
 		}
 		return false;
@@ -393,5 +389,14 @@ class IRC extends DOG_Connector
 		$ctcp = IRCLib::CTCP;
 		return $this->sendPRIVMSG($to, "{$ctcp}ACTION {$text}{$ctcp}");
 	}
+
+	public function init(): bool
+	{
+		return true;
+	}
+
+	#############
+	### Style ###
+	#############
 
 }

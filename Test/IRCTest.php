@@ -13,16 +13,16 @@ final class IRCTest extends IRCTestCase
 
 	public function testServerAdd()
 	{
-		$response = $this->bashCommand('irc.join_network');
+		$response = $this->bashCommand('irc.connect');
 		assertMatchesRegularExpression('/usage:/is', $response, 'Check if usage is shown on error');
 
-		$response = $this->bashCommand('irc.join_network irc://irc.giz.org:6667');
+		$response = $this->bashCommand('irc.connect irc://irc.giz.org:6667');
 		assertMatchesRegularExpression('/ join /is', $response, 'Check if join response comes.');
 
-		$response = $this->ircResponse(1000000);
+		$response = $this->ircResponse();
 		assertTrue(stripos($response, ' auth') !== false, 'check if connection to IRC is being established');
-		sleep(3);
-		$response .= $this->ircResponse(1000000);
+		sleep(2);
+		$response .= $this->ircResponse();
 		assertTrue(stripos($response, 'established') !== false, 'check if connection to IRC is establishing');
 
 		$response = $this->ircPrivmsg('ping');

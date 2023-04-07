@@ -22,7 +22,7 @@ use GDO\Util\Regex;
 final class Events extends DOG_Command
 {
 
-	public $priority = 1;
+	public int $priority = 1;
 
 	public function isWebMethod() { return false; }
 

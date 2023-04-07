@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace GDO\DogIRC\Method;
 
 use GDO\Core\GDT_Secret;
@@ -16,18 +17,18 @@ use GDO\Util\Random;
 /**
  * Join a new IRC network.
  *
- * @version 6.10
+ * @version 7.0.3
  * @since 6.10
  * @author gizmore
  */
 final class JoinServer extends DOG_IRCCommand
 {
 
-	public $priority = 10;
+	public int $priority = 10;
 
 	public function getCLITrigger(): string
 	{
-		return 'irc.join_network';
+		return 'irc.connect';
 	}
 
 	public function getPermission(): ?string { return Dog::OPERATOR; }
@@ -43,7 +44,7 @@ final class JoinServer extends DOG_IRCCommand
 		];
 	}
 
-	public function dogExecute(DOG_Message $message, URL $url, $nickname, $password)
+	public function dogExecute(DOG_Message $message, URL $url, string $nickname = null, string $password = null)
 	{
 		$server = DOG_Server::blank([
 			'serv_url' => $url->raw,
@@ -102,7 +103,7 @@ final class JoinServer extends DOG_IRCCommand
 			$server->connectionAttemptMax = 50;
 
 			$pw = Random::randomKey(8, Random::ALPHANUMUPLOW);
-			Super::byTrigger('super')->setConfigValueServer($server, 'super_password', $pw);
+			Super::make()->setConfigValueServer($server, 'super_password', $pw);
 
 			$user->send(t('msg_dog_irc_server_fresh', [$server->renderName(), $server->getConnector()->nickname, $pw]));
 		}
