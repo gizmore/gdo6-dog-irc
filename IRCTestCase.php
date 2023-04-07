@@ -45,7 +45,7 @@ class IRCTestCase extends DogTestCase
 					$table->grant($user, Dog::VOICE);
 					$table->grant($user, Dog::HALFOP);
 					$table->grant($user, Dog::OPERATOR);
-					$table->grant($user, Dog::OWNER);
+					$table->grant($user, Dog::ADMIN);
 					$user->changedPermissions();
 				}
 			}
