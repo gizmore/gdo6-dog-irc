@@ -287,11 +287,8 @@ class IRC extends DOG_Connector
 
 	/**
 	 * Makes multi-line work.
-	 *
-	 * @param string $message
-	 * @param number $split_len
 	 */
-	public function sendSplitted($message, $split_len = 420)
+	public function sendSplitted(string $message, int $split_len = 420): bool
 	{
 		$prefix = Strings::substrTo($message, ':') . ':';
 		$messages = explode("\n", $message);
@@ -308,15 +305,13 @@ class IRC extends DOG_Connector
 			}
 			$first = false;
 		}
+		return true;
 	}
 
 	/**
 	 * Send a message split into multiple.
-	 *
-	 * @param string $message The real message.
-	 * @param int $split_len The length for each chunk.
 	 */
-	public function sendSplittedB($message, $split_len = 420)
+	public function sendSplittedB(string $message, int $split_len = 420): bool
 	{
 		$len = strlen($message);
 

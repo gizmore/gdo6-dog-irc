@@ -100,7 +100,7 @@ class IRCTestCase extends DogTestCase
 	 * @return DOG_Server
 	 * @see DogTestCase::getServer
 	 */
-	protected function getServer()
+	protected function getServer(): DOG_Server
 	{
 		$server = DOG_Server::getBy('serv_connector', 'IRC');
 		return $server ? $server : parent::getServer();
