@@ -33,7 +33,7 @@ final class JoinServer extends DOG_IRCCommand
 
 	public function getPermission(): ?string { return Dog::OPERATOR; }
 
-	protected function getConnectors() { return ['IRC', 'Bash']; }
+	protected function getConnectors(): array { return ['IRC', 'Bash']; }
 
 	public function gdoParameters(): array
 	{
@@ -44,7 +44,7 @@ final class JoinServer extends DOG_IRCCommand
 		];
 	}
 
-	public function dogExecute(DOG_Message $message, URL $url, string $nickname = null, string $password = null)
+	public function dogExecute(DOG_Message $message, URL $url, string $nickname = null, string $password = null): bool
 	{
 		$server = DOG_Server::blank([
 			'serv_url' => $url->raw,
@@ -102,7 +102,7 @@ final class JoinServer extends DOG_IRCCommand
 			$server->tempUnset('irc_join_network');
 			$server->connectionAttemptMax = 50;
 
-			$pw = Random::randomKey(8, Random::ALPHANUMUPLOW);
+			$pw = Random::randomKey(8);
 			Super::make()->setConfigValueServer($server, 'super_password', $pw);
 
 			$user->send(t('msg_dog_irc_server_fresh', [$server->renderName(), $server->getConnector()->nickname, $pw]));

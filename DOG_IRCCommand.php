@@ -1,7 +1,9 @@
 <?php
+declare(strict_types=1);
 namespace GDO\DogIRC;
 
 use GDO\Dog\DOG_Command;
+use GDO\Dog\DOG_Connector;
 use GDO\Dog\DOG_Message;
 use GDO\DogIRC\Connector\IRC;
 
@@ -18,13 +20,11 @@ abstract class DOG_IRCCommand extends DOG_Command
 		return 'irc';
 	}
 
-	protected function getConnectors() { return ['IRC']; }
+	protected function getConnectors(): array { return ['IRC']; }
 
-	/**
-	 * @param DOG_Message $message
-	 *
-	 * @return IRC
-	 */
-	public function getConnector(DOG_Message $message) { return $message->server->getConnector(); }
+	public function getConnector(DOG_Message $message): DOG_Connector
+	{
+		return $message->server->getConnector();
+	}
 
 }
