@@ -3,7 +3,6 @@ namespace GDO\DogIRC\Test;
 
 use GDO\Dog\Dog;
 use GDO\Dog\DOG_Server;
-use GDO\DogIRC\IRCTestCase;
 use function PHPUnit\Framework\assertIsObject;
 use function PHPUnit\Framework\assertMatchesRegularExpression;
 use function PHPUnit\Framework\assertTrue;

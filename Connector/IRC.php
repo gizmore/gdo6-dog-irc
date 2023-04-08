@@ -2,18 +2,17 @@
 declare(strict_types=1);
 namespace GDO\DogIRC\Connector;
 
-use GDO\Core\Application;
+use GDO\Core\GDT;
 use GDO\Core\Logger;
-use GDO\Date\Time;
 use GDO\Dog\Dog;
 use GDO\Dog\DOG_Connector;
+use GDO\Dog\DOG_Message;
 use GDO\Dog\DOG_Room;
 use GDO\Dog\DOG_Server;
 use GDO\Dog\DOG_User;
 use GDO\Dog\Obfuscate;
 use GDO\DogIRC\DOG_IRCServerSettings;
 use GDO\DogIRC\IRCLib;
-use GDO\Language\Trans;
 use GDO\User\GDO_User;
 use GDO\Util\Random;
 use GDO\Util\Strings;
@@ -30,7 +29,6 @@ class IRC extends DOG_Connector
 
 	public ?string $nickname = null;
 
-	private float $timestamp;
 	private $socket;
 	private $context;
 	private bool $registered = false;
@@ -46,7 +44,12 @@ class IRC extends DOG_Connector
 		return Obfuscate::obfuscate($string);
 	}
 
-	public function connect()
+	public function gdtRenderMode(): int
+	{
+		return GDT::RENDER_IRC;
+	}
+
+	public function connect(): bool
 	{
 		$options = [
 			'ssl' => [
@@ -56,7 +59,7 @@ class IRC extends DOG_Connector
 			],
 		];
 
-		if (false === ($this->context = stream_context_create($options)))
+		if (!($this->context = stream_context_create($options)))
 		{
 			Logger::logError('IRC Connector cannot create stream context.');
 			return false;
@@ -100,7 +103,6 @@ class IRC extends DOG_Connector
 			return false;
 		}
 
-		$this->timestamp = Application::$MICROTIME;
 		$this->socket = $socket;
 		$this->connected(true);
 		$this->nickname = null;
@@ -108,14 +110,14 @@ class IRC extends DOG_Connector
 		return true;
 	}
 
-	public function disconnect($reason)
+	public function disconnect($reason): void
 	{
 		$this->send("QUIT :{$reason}");
 	}
 
 	public function send(string $text): bool
 	{
-		echo "{$this->server->renderName()} >> $text\n";
+		echo "{$this->server->renderName()} >> {$text}\n";
 		if ($this->socket)
 		{
 			if (!fwrite($this->socket, "$text\r\n"))
@@ -124,55 +126,41 @@ class IRC extends DOG_Connector
 				$this->disconnect('SEND failed');
 				return false;
 			}
-//			if (Application::$INSTANCE->isUnitTests())
-//			{
-//			}
 			return true;
 		}
 		return false;
 	}
 
-	public function readMessage()
+	public function readMessage(): ?DOG_Message
 	{
 		if (!$this->socket)
 		{
-			return false;
+			return null;
 		}
 		if (feof($this->socket))
 		{
 // 			$this->disconnect('I got feof!');
-			return false;
+			return null;
 		}
-		if ($raw = fgets($this->socket, 2047))
+		if ($raw = fgets($this->socket, 2048))
 		{
 			$raw = rtrim($raw);
-//			if (defined('GDO_CONSOLE_VERBOSE'))
-//			{
-				Logger::logCron(sprintf('%s << %s', $this->server->renderName(), $raw));
-// 		        ob_flush();
-//			}
+			Logger::logCron(sprintf('%s << %s', $this->server->renderName(), $raw));
 			return $this->parseMessage($raw);
 		}
-		return false;
+		return null;
 	}
 
 	/**
 	 * Parse and execute the next message.
 	 * Optimized for speed.
-	 *
-	 * @param string $raw
-	 *
-	 * @version 6.10
-	 * @since 6.10
-	 * @return bool
-	 * @author gizmore
 	 */
-	private function parseMessage($raw)
+	private function parseMessage(string $raw): ?DOG_Message
 	{
-		if (strpos($raw, 'ERR') === 0)
+		if (str_starts_with($raw, 'ERR'))
 		{
 			Dog::instance()->event('irc_ERROR', $this->server, Strings::substrFrom($raw, 'ERROR :'));
-			return false;
+			return null;
 		}
 
 		$from = '';
@@ -199,8 +187,6 @@ class IRC extends DOG_Connector
 			$args[] = $user = DOG_User::getOrCreateUser($this->server, $from);
 			$gdoUser = $user->getGDOUser();
 			GDO_User::setCurrent($gdoUser);
-			Trans::setISO($gdoUser->getLangISO());
-			Time::setTimezone($gdoUser->getTimezone());
 			$this->server->addUser($user);
 		}
 
@@ -230,10 +216,10 @@ class IRC extends DOG_Connector
 			$this->registered = true;
 		}
 
-		return true;
+		return null;
 	}
 
-	private function sendAuth()
+	private function sendAuth(): void
 	{
 		$nick = $this->getNextNickname();
 
@@ -242,27 +228,23 @@ class IRC extends DOG_Connector
 				$nick, 'dog.gizmore.org', $this->server->getDomain(), 'Dawg'))
 		)
 		{
-			return false;
+			return;
 		}
 		if (!$this->send("NICK {$nick}"))
 		{
-			return false;
+			return;
 		}
 
 		if ($password = $this->server->getPassword())
 		{
 			if ($nick === $this->server->getUsername())
 			{
-				if (!$this->sendPRIVMSG('NickServ', 'IDENTIFY ' . $password))
-				{
-					return false;
-				}
+				$this->sendPRIVMSG('NickServ', 'IDENTIFY ' . $password);
 			}
 		}
-		return true;
 	}
 
-	private function getNextNickname()
+	private function getNextNickname(): string
 	{
 		if ($this->nickname === null)
 		{
@@ -272,11 +254,10 @@ class IRC extends DOG_Connector
 		{
 			$this->nickname = $this->server->getUsername() . Random::randomKey(4, Random::NUMERIC);
 		}
-
 		return $this->nickname;
 	}
 
-	public function sendPRIVMSG($to, $text)
+	public function sendPRIVMSG(string $to, string $text): bool
 	{
 		return $this->sendSplitted("PRIVMSG {$to} :{$text}");
 	}
@@ -298,8 +279,8 @@ class IRC extends DOG_Connector
 					$message = $prefix . $message;
 				}
 				$this->sendSplittedB($message);
+				$first = false;
 			}
-			$first = false;
 		}
 		return true;
 	}
@@ -309,14 +290,15 @@ class IRC extends DOG_Connector
 	 */
 	public function sendSplittedB(string $message, int $split_len = 420): bool
 	{
-		$len = strlen($message);
+		$len = mb_strlen($message);
 
 		if ($len <= $split_len)
 		{
 			return $this->send($message);
 		}
 
-		if (str_starts_with($message, 'NOTICE ') || str_starts_with($message, 'PRIVMSG'))
+		$prefix = '';
+		if (str_starts_with($message, 'NOTICE ') || str_starts_with($message, 'PRIVMSG '))
 		{
 			$prefix = Strings::substrTo($message, ':') . ':';
 			$message = Strings::substrFrom($message, ':');
@@ -335,56 +317,54 @@ class IRC extends DOG_Connector
 
 	/**
 	 * Generate the next nickname.
-	 *
-	 * @return string
 	 */
-	public function getNickname()
+	public function getNickname(): string
 	{
 		return $this->nickname;
 	}
 
-	public function sendToRoom(DOG_Room $room, $text)
+	public function sendToRoom(DOG_Room $room, $text): bool
 	{
 		parent::sendToRoom($room, $text);
 		return $this->sendPRIVMSG($room->getName(), $text);
 	}
 
-	public function sendToUser(DOG_User $user, $text)
+	public function sendToUser(DOG_User $user, $text): bool
 	{
 		parent::sendToUser($user, $text);
 		return $this->sendPRIVMSG($user->getName(), $text);
 	}
 
-	public function sendNoticeToUser(DOG_User $user, $text)
+	public function sendNoticeToUser(DOG_User $user, $text): bool
 	{
 		parent::sendNoticeToUser($user, $text);
 		return $this->sendNOTICE($user->getName(), $text);
 	}
 
-	public function sendNOTICE($to, $text)
+	public function sendNOTICE($to, $text): bool
 	{
 		return $this->sendSplitted("NOTICE {$to} :{$text}");
 	}
 
-	public function getSettings()
+	public function getSettings(): DOG_IRCServerSettings
 	{
 		return DOG_IRCServerSettings::getOrCreate($this->server);
 	}
 
-	public function disconnected()
+	public function disconnected(): void
 	{
 		$this->socket = null;
 		$this->context = null;
 		$this->connected(false);
 	}
 
-	public function sendCTCP($to, $text)
+	public function sendCTCP($to, $text): bool
 	{
 		$ctcp = IRCLib::CTCP;
 		return $this->sendNOTICE($to, "{$ctcp}{$text}{$ctcp}");
 	}
 
-	public function sendAction($to, $text)
+	public function sendAction($to, $text): bool
 	{
 		$ctcp = IRCLib::CTCP;
 		return $this->sendPRIVMSG($to, "{$ctcp}ACTION {$text}{$ctcp}");
@@ -395,8 +375,5 @@ class IRC extends DOG_Connector
 		return true;
 	}
 
-	#############
-	### Style ###
-	#############
 
 }

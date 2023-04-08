@@ -18,7 +18,7 @@ abstract class DOG_IRCCommand extends DOG_Command
 		return 'irc';
 	}
 
-	public function getConnectors() { return ['IRC']; }
+	protected function getConnectors() { return ['IRC']; }
 
 	/**
 	 * @param DOG_Message $message

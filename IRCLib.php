@@ -11,8 +11,25 @@ use GDO\Dog\Dog;
 final class IRCLib
 {
 
-	public const CTCP = "\x01";
-	public const BOLD = "\x02";
+	final public const CTCP = "\x01";
+
+	final public const BOLD = "\x02";
+
+	final public const ITALIC = "\x1F";
+
+
+	public static function bold(string $s): string
+	{
+		$b = self::BOLD;
+		return "{$b}{$s}{$b}";
+	}
+
+	public static function italic(string $s): string
+	{
+		$b = self::ITALIC;
+		return "{$b}{$s}{$b}";
+	}
+
 
 	public static function permissionFromUsername($userName)
 	{
@@ -24,7 +41,7 @@ final class IRCLib
 		}
 	}
 
-	public static function mapCharPermission()
+	public static function mapCharPermission(): array
 	{
 		return [
 			'+' => Dog::VOICE,
@@ -43,35 +60,33 @@ final class IRCLib
 	/**
 	 * Split a message into $len chunks, but only break at spaces.
 	 *
-	 * @param string $text
-	 * @param number $len
-	 *
 	 * @return string[]
 	 */
-	public static function splitMessage($text, $len = 420)
+	public static function splitMessage(string $text, int $len = 420): array
 	{
 		$chunks = [];
 		$end1 = $end2 = 0;
-		while ($text)
+		while (true)
 		{
-			if (strlen($text) <= $len)
+			if (mb_strlen($text) <= $len)
 			{
 				$chunks[] = $text;
 				return $chunks;
 			}
-			$end2 = strpos($text, ' ', $end1 + 1);
+			$end2 = mb_strpos($text, ' ', $end1 + 1);
 			if ($end2 > $len)
 			{
 				if ($end1 === 0) # NO SPACE!
 				{
 					$end1 = $len;
 				}
-				$chunks[] = substr($text, 0, $end1);
-				$text = substr($text, $end1);
+				$chunks[] = mb_substr($text, 0, $end1);
+				$text = mb_substr($text, $end1);
 				$end1 = $end2 = 0;
 			}
 			$end1 = $end2;
 		}
+		return $chunks;
 	}
 
 }

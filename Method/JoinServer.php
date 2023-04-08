@@ -33,7 +33,7 @@ final class JoinServer extends DOG_IRCCommand
 
 	public function getPermission(): ?string { return Dog::OPERATOR; }
 
-	public function getConnectors() { return ['IRC', 'Bash']; }
+	protected function getConnectors() { return ['IRC', 'Bash']; }
 
 	public function gdoParameters(): array
 	{
@@ -66,7 +66,7 @@ final class JoinServer extends DOG_IRCCommand
 	##############
 	### Events ###
 	##############
-	public function dog_server_failed(DOG_Server $server)
+	public function dog_server_failed(DOG_Server $server): void
 	{
 		/**
 		 * @var DOG_User $user
@@ -80,7 +80,7 @@ final class JoinServer extends DOG_IRCCommand
 		}
 	}
 
-	public function dog_server_connected(DOG_Server $server)
+	public function dog_server_connected(DOG_Server $server): void
 	{
 		/**
 		 * @var DOG_User $user
@@ -92,7 +92,7 @@ final class JoinServer extends DOG_IRCCommand
 		}
 	}
 
-	public function dog_server_authenticated(DOG_Server $server)
+	public function dog_server_authenticated(DOG_Server $server): void
 	{
 		/**
 		 * @var DOG_User $user

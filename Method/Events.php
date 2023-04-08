@@ -26,11 +26,11 @@ final class Events extends DOG_Command
 
 	public function isWebMethod() { return false; }
 
-	public function isHiddenMethod() { return true; }
+	public function isHiddenMethod(): bool { return true; }
 
-	public function isRoomMethod() { return false; }
+	protected function isRoomMethod(): bool { return false; }
 
-	public function isPrivateMethod() { return false; }
+	protected function isPrivateMethod(): bool { return false; }
 
 	public function irc_ERROR(DOG_Server $server, $raw)
 	{

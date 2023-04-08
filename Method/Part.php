@@ -25,7 +25,7 @@ final class Part extends DOG_IRCCommand
 
 	public function getPermission(): ?string { return Dog::OPERATOR; }
 
-	public function isPrivateMethod() { return false; }
+	protected function isPrivateMethod(): bool { return false; }
 
 	public function dogExecute(DOG_Message $message)
 	{

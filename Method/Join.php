@@ -29,7 +29,7 @@ final class Join extends DOG_IRCCommand
 
 	public function getPermission(): ?string { return Dog::HALFOP; }
 
-	public function getConfigRoom()
+	protected function getConfigRoom(): array
 	{
 		return [
 			GDT_Checkbox::make('autojoin')->notNull()->initial('1'),

@@ -1,5 +1,5 @@
 <?php
-namespace GDO\DogIRC;
+namespace GDO\DogIRC\Test;
 
 use GDO\Dog\Dog;
 use GDO\Dog\DOG_Message;
@@ -12,7 +12,6 @@ use GDO\Tests\GDT_MethodTest;
 use GDO\User\GDO_User;
 use GDO\User\GDO_UserPermission;
 use GDO\User\GDT_UserType;
-use Throwable;
 
 class IRCTestCase extends DogTestCase
 {
@@ -44,7 +43,6 @@ class IRCTestCase extends DogTestCase
 					GDO_UserPermission::grant($user, Dog::VOICE);
 					GDO_UserPermission::grant($user, Dog::HALFOP);
 					GDO_UserPermission::grant($user, Dog::OPERATOR);
-					GDO_UserPermission::grant($user, Dog::ADMIN);
 					$user->changedPermissions();
 				}
 			}
@@ -100,7 +98,7 @@ class IRCTestCase extends DogTestCase
 		return $server ?: parent::getServer();
 	}
 
-	protected function getDogRoom()
+	protected function getDogRoom(): ?DOG_Room
 	{
 		return DOG_Room::getByName($this->getServer(), '#dog');
 	}
@@ -114,64 +112,46 @@ class IRCTestCase extends DogTestCase
 
 	public function ircPrivmsg($text, DOG_Room $room = null, $usleep = 500000)
 	{
-//		ob_start();
-//         ob_implicit_flush(false);
 		$server = $this->getServer();
 		$message = DOG_Message::make()->
 		user($this->doguser)->server($server)->
 		room($room)->text($text);
 		Dog::instance()->event('dog_message', $message);
-//		$response = ob_get_contents();
-//		ob_end_clean();
-//         ob_implicit_flush(true);
-		$res = $this->ircResponse($usleep);
-		echo $res;
-		return $res;
+		return $this->ircResponse($usleep);
 	}
 
-	public function ircResponse($usleep = 500000)
+	public function ircResponse(int $usleep = 250000): string
 	{
 		$mode = 1;
 		$response = '';
-		try
+//		try
+//		{
+		usleep($usleep); # 250ms
+		while ($mode)
 		{
-			usleep(250000); # 250ms
-//			ob_start();
-//             ob_implicit_flush(false);
-			while ($mode)
+			Dog::instance()->mainloopStep();
+			$r = ob_get_contents();
+			$response .= $r;
+			ob_flush();
+			if (!$r)
 			{
-				Dog::instance()->mainloopStep();
-				$r = ob_get_contents();
-				$response .= $r;
-				ob_clean();
-				if (!$r)
+				if ($mode == 2)
 				{
-					if ($mode == 2)
-					{
-						break;
-					}
-					$mode = 2;
+					break;
 				}
-				usleep($usleep); # 500ms
+				$mode = 2;
 			}
-			echo $response;
-			return $response;
+			usleep(250000);
 		}
-		catch (Throwable $ex)
-		{
-			throw $ex;
-		}
-		finally
-		{
-//			ob_end_clean();
-//            ob_implicit_flush(true);
-		}
+		return $response;
+//		}
+//		catch (Throwable $ex)
+//		{
+//			throw $ex;
+//		}
 	}
 
-	/**
-	 * @return IRC
-	 */
-	protected function getConnector()
+	protected function getConnector(): IRC
 	{
 		return $this->getServer()->getConnector();
 	}
