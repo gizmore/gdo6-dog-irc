@@ -55,7 +55,7 @@ final class IRCLib
 	 */
 	public static function colored(string $s, string $ircColor): string
 	{
-		Website::errorRaw('IRCLIB', 'IRCLIB Color not working yet. Color: ' . $ircColor);
+#		Website::errorRaw('IRCLIB', 'IRCLIB Color not working yet. Color: ' . $ircColor);
 		return $s;
 	}
 
@@ -64,7 +64,7 @@ final class IRCLib
 	{
 		$map = self::mapCharPermission();
 		$char = $userName[0];
-		return $map[$char]?: '';
+		return $map[$char] ?? '';
 	}
 
 	public static function mapCharPermission(): array
