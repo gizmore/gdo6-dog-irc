@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace GDO\DogIRC\Connector;
 
+use GDO\Core\Application;
 use GDO\Core\GDT;
 use GDO\Core\Logger;
 use GDO\Dog\Dog;
@@ -69,7 +70,7 @@ class IRC extends DOG_Connector
 		$errstr = '';
 		if (
 			false === ($socket = stream_socket_client(
-				$this->server->getConnectURL(),
+				"tcp://{$this->server->getConnectURL()}",
 				$errno,
 				$errstr,
 				$this->server->getConnectTimeout(),
@@ -80,6 +81,7 @@ class IRC extends DOG_Connector
 			Logger::logError('IRC Connector cannot create stram context.');
 			Logger::logError("Dog_IRC::connect() ERROR: stream_socket_client(): URL={$this->server->getURL()->raw} CONNECT_TIMEOUT={$this->server->getConnectTimeout()}");
 			Logger::logError(sprintf('Dog_IRC::connect() $errno=%d; $errstr=%s', $errno, $errstr));
+            return false;
 		}
 
 		if ($this->server->getURL()->getScheme() === 'ircs')
@@ -118,29 +120,39 @@ class IRC extends DOG_Connector
 	public function send(string $text): bool
 	{
 		echo "{$this->server->renderName()} >> {$text}\n";
-		if ($this->socket)
-		{
-			if (!fwrite($this->socket, "$text\r\n"))
-			{
-				$this->socket = null;
-				$this->disconnect('SEND failed');
-				return false;
-			}
-			return true;
-		}
-		return false;
+        try
+        {
+            if ($this->socket)
+            {
+                if (!fwrite($this->socket, "$text\r\n"))
+                {
+                    $this->socket = null;
+                    $this->connected(false);
+//                    $this->disconnect('SEND failed');
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
+        catch (\Throwable)
+        {
+            Logger::logError("Cannot send");
+            return false;
+        }
 	}
 
-	public function readMessage(): ?DOG_Message
-	{
+	public function readMessage(): bool
+    {
 		if (!$this->socket)
 		{
-			return null;
+			return false;
 		}
 		if (feof($this->socket))
 		{
+            $this->connected(false);
 // 			$this->disconnect('I got feof!');
-			return null;
+			return false;
 		}
 		if ($raw = fgets($this->socket, 2048))
 		{
@@ -148,19 +160,19 @@ class IRC extends DOG_Connector
 			Logger::logCron(sprintf('%s << %s', $this->server->renderName(), $raw));
 			return $this->parseMessage($raw);
 		}
-		return null;
+		return false;
 	}
 
 	/**
 	 * Parse and execute the next message.
 	 * Optimized for speed.
 	 */
-	private function parseMessage(string $raw): ?DOG_Message
+	private function parseMessage(string $raw): bool
 	{
 		if (str_starts_with($raw, 'ERR'))
 		{
 			Dog::instance()->event('irc_ERROR', $this->server, Strings::substrFrom($raw, 'ERROR :'));
-			return null;
+			return false;
 		}
 
 		$from = '';
@@ -208,6 +220,7 @@ class IRC extends DOG_Connector
 			$raw = substr($raw, $i + 1);
 		}
 
+        Application::instance()->modeDetected(GDT::RENDER_IRC);
 		Dog::instance()->event("irc_{$event}", ...$args);
 
 		if (!$this->registered)
@@ -216,7 +229,7 @@ class IRC extends DOG_Connector
 			$this->registered = true;
 		}
 
-		return null;
+		return true;
 	}
 
 	private function sendAuth(): void
