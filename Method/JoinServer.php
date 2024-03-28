@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace GDO\DogIRC\Method;
 
+use GDO\Core\GDT;
 use GDO\Core\GDT_Secret;
 use GDO\Dog\Dog;
 use GDO\Dog\DOG_Message;
@@ -44,7 +45,7 @@ final class JoinServer extends DOG_IRCCommand
 		];
 	}
 
-	public function dogExecute(DOG_Message $message, URL $url, string $nickname = null, string $password = null): bool
+	public function dogExecute(DOG_Message $message, URL $url, string $nickname = null, string $password = null): GDT
 	{
 		$server = DOG_Server::blank([
 			'serv_url' => $url->raw,

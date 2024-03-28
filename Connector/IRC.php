@@ -68,9 +68,10 @@ class IRC extends DOG_Connector
 
 		$errno = 0;
 		$errstr = '';
+        $address = "tcp://{$this->server->getConnectURL()}";
 		if (
 			false === ($socket = stream_socket_client(
-				"tcp://{$this->server->getConnectURL()}",
+				$address,
 				$errno,
 				$errstr,
 				$this->server->getConnectTimeout(),
@@ -86,7 +87,7 @@ class IRC extends DOG_Connector
 
 		if ($this->server->getURL()->getScheme() === 'ircs')
 		{
-			if (stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT))
+			if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT))
 			{
 				Logger::logError('Dog_IRC::connect() ERROR: stream_socket_enable_crypto(true, STREAM_CRYPTO_METHOD_TLS_CLIENT)');
 				return false;
@@ -338,8 +339,8 @@ class IRC extends DOG_Connector
 
 	public function sendToRoom(DOG_Room $room, $text): bool
 	{
-		parent::sendToRoom($room, $text);
-		return $this->sendPRIVMSG($room->getName(), $text);
+        $this->sendPRIVMSG($room->getName(), $text);
+        return parent::sendToRoom($room, $text);
 	}
 
 	public function sendToUser(DOG_User $user, $text): bool
