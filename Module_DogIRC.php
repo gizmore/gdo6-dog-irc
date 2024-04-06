@@ -3,6 +3,8 @@ declare(strict_types=1);
 namespace GDO\DogIRC;
 
 use GDO\Core\GDO_Module;
+use GDO\Dog\DOG_Connector;
+use GDO\DogIRC\Connector\IRC;
 use GDO\Subscription\GDT_SubscribeType;
 
 /**
@@ -45,6 +47,7 @@ final class Module_DogIRC extends GDO_Module
         {
             GDT_SubscribeType::addSubscriptor($this);
         }
+        DOG_Connector::register(new IRC());
     }
 
 }
